@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regulatory Compliance Analyzer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Dongle&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&display=swap" rel="stylesheet"> 
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap" rel="stylesheet"> 
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark-nav: #4f46e5;
+            --secondary-nav: #06b6d4;
+            --accent: #a855f7;
+            --dark-bg: #111827;
+            --darker-bg: #030712;
+            --text-primary-nav: #f3f4f6;
+            --text-secondary-nav: #9ca3af;
+            --glass-effect: blur(12px);
+            --transition-normal: all 0.3s ease;
+            --border-glow: rgba(99, 102, 241, 0.3);
+            --glow-cyan: 0 0 15px rgba(6, 182, 212, 0.5);
+            --glow-indigo: 0 0 15px rgba(99, 102, 241, 0.5);
+            --glow-purple: 0 0 15px rgba(168, 85, 247, 0.5);
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+            --primary-color: #007bff;
+            --primary-light-color: #e3f2fd;
+            --primary-dark-color: #0056b3;
+            --secondary-color: #6c757d;
+            --text-color: #343a40;
+            --light-text-color: #f8f9fa;
+            --container-bg: #ffffff;
+            --border-color: #dee2e6;
+            
+            --font-heading: 'Montserrat', sans-serif;
+            --font-body: 'Open Sans', sans-serif;
+
+            --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --shadow-medium: 0 8px 24px rgba(0, 0, 0, 0.1);
+            --shadow-strong: 0 12px 36px rgba(0, 0, 0, 0.12);
+
+            --scrollbar-gradient-start: #0bb1d5;
+            --scrollbar-gradient-end: #5f6af0;
+            --scrollbar-gradient-start-hover: #0a9bc0;
+            --scrollbar-gradient-end-hover: #5560d8;
+
+            --card-bg: rgba(255, 255, 255, 0.65);
+            --card-border-color: rgba(0, 123, 255, 0.25);
+            --card-border-color-hover: rgba(0, 123, 255, 0.5);
+            --card-glow-start: rgba(0, 123, 255, 0.1);
+            --card-glow-end: rgba(0, 86, 179, 0.15);
+            --card-glow-start-hover: rgba(0, 123, 255, 0.18);
+            --card-glow-end-hover: rgba(0, 86, 179, 0.22);
+
+            --grid-size: 45px;
+        }
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 80px;
+            color-scheme: light only;
+        }
+        body {
+            font-family: 'Space Grotesk', var(--font-body);
+            color: var(--text-color);
+            background: var(--container-bg);
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        body::before {
+            --line: color-mix(in hsl, var(--text-color), transparent 85%);
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: -2;
+            background:
+                linear-gradient(
+                    90deg,
+                    var(--line) 1px,
+                    transparent 1px var(--grid-size)
+                )
+                calc(var(--grid-size) * 0.36) 50% / var(--grid-size) var(--grid-size),
+                linear-gradient(
+                    var(--line) 1px,
+                    transparent 1px var(--grid-size)
+                )
+                0 calc(var(--grid-size) * 0.32) / var(--grid-size) var(--grid-size);
+            mask: linear-gradient(-20deg, transparent 50%, white);
+        }
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Montserrat', var(--font-heading);
+            color: var(--primary-dark-color);
+        }
+        .file-upload {
+            position: relative;
+            overflow: hidden;
+        }
+        .file-upload input[type="file"] {
+            position: absolute;
+            top: 0;
+            right: 0;
+            min-width: 100%;
+            min-height: 100%;
+            font-size: 100px;
+            text-align: right;
+            filter: alpha(opacity=0);
+            opacity: 0;
+            outline: none;
+            background: white;
+            cursor: inherit;
+            display: block;
+        }
+        .compliant {
+            background-color: rgba(112, 173, 70, 0.12);
+        }
+        .non-compliant {
+            background-color: rgba(229, 57, 53, 0.12);
+        }
+        .certificate {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border-color);
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .btn-primary {
+            background: linear-gradient(to right, var(--primary), var(--secondary-nav));
+            color: var(--light-text-color);
+            font-family: var(--font-heading);
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 0.75rem 2rem;
+            transition: background 0.3s, color 0.3s, transform 0.2s;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(to right, var(--primary-dark-nav), var(--accent));
+            color: var(--light-text-color);
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background: var(--primary-light-color);
+            color: var(--primary-dark-color);
+            font-family: var(--font-heading);
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 0.75rem 2rem;
+            transition: background 0.3s, color 0.3s, transform 0.2s;
+        }
+        .btn-secondary:hover {
+            background: var(--primary-dark-color);
+            color: var(--light-text-color);
+            transform: translateY(-2px);
+        }
+        table {
+            font-family: var(--font-body);
+            color: var(--text-color);
+        }
+        th {
+            background: var(--primary-light-color);
+            color: var(--primary-dark-color);
+            font-family: var(--font-heading);
+        }
+        td {
+            background: var(--container-bg);
+        }
+        input, select {
+            font-family: var(--font-body);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Painel lateral estilo ChatGPT -->
+    <aside id="sidebar" style="position: fixed; top: 0; left: 0; height: 100vh; width: 210px; background: rgba(255,255,255,0.85); border-right: 1.5px solid var(--border-color); z-index: 10; box-shadow: 2px 0 12px rgba(0,0,0,0.04); display: flex; flex-direction: column; font-size: 0.92rem;">
+        <div style="height: 70px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid var(--border-color); padding: 8px 0;">
+            <img src="https://iconlogovector.com/uploads/images/2023/11/lg-655614c7af00b-nestle.png" alt="Nestlé Logo" style="max-height: 60px; width: auto; max-width: 90%; object-fit: contain; display: block; margin: 0 auto;" />
+        </div>
+        <nav style="flex: 1; overflow-y: auto; padding: 1rem 0.25rem;">
+            <h2 style="font-family: var(--font-heading); font-size: 0.98rem; color: var(--primary-dark-color); margin-bottom: 0.7rem; padding-left: 0.5rem; letter-spacing: 0.01em;">Requests</h2>
+            <ul id="sidebar-requests" style="list-style: none; padding: 0; margin: 0;">
+                <li style="margin-bottom: 0.35rem;">
+                    <a href="#" style="display: block; padding: 0.55rem 0.7rem; border-radius: 5px; background: var(--primary-light-color); color: var(--primary-dark-color); font-family: var(--font-body); font-size: 0.97rem; text-decoration: none; font-weight: 600; transition: background 0.2s;">
+                        Request 1
+                    </a>
+                </li>
+                <li style="margin-bottom: 0.35rem;">
+                    <a href="#" style="display: block; padding: 0.55rem 0.7rem; border-radius: 5px; background: transparent; color: var(--text-color); font-family: var(--font-body); font-size: 0.97rem; text-decoration: none; font-weight: 500; transition: background 0.2s;">
+                        Request 2
+                    </a>
+                </li>
+                <li style="margin-bottom: 0.35rem;">
+                    <a href="#" style="display: block; padding: 0.55rem 0.7rem; border-radius: 5px; background: transparent; color: var(--text-color); font-family: var(--font-body); font-size: 0.97rem; text-decoration: none; font-weight: 500; transition: background 0.2s;">
+                        Request 3
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        <div style="height: 32px; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; color: var(--secondary-color); font-family: var(--font-body);">
+            <span>Concept Demo</span>
+        </div>
+    </aside>
+    <div class="container mx-auto px-4 py-8" style="margin-left: 210px; max-width: calc(100vw - 210px);">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">Regulatory Compliance Analyzer</h1>
+            <p class="text-gray-600 max-w-2xl mx-auto">Verify chemical ingredient compliance with EU and international regulations</p>
+        </header>
+
+        <div class="bg-white rounded-xl shadow-md overflow-hidden mb-8">
+            <div class="p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Upload Technical Data</h2>
+                
+                <div class="grid grid-cols-1 gap-6 mb-6">
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                        <div class="file-upload w-full">
+                            <button class="bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium py-3 px-6 rounded-lg w-full transition duration-200">
+                                <i class="fas fa-file-pdf mr-2"></i> Upload PDF Technical Sheet
+                            </button>
+                            <input type="file" id="pdf-upload" accept=".pdf" class="hidden">
+                        </div>
+                        <p class="text-sm text-gray-500 mt-2">Supports PDF files up to 10MB</p>
+                    </div>
+                    
+                </div>
+                
+            </div>
+        </div>
+
+        <div id="ingredients-section" class="hidden fade-in">
+            <div class="bg-white rounded-xl shadow-md overflow-hidden mb-6">
+                <div class="p-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-2 sm:mb-0">Ingredients Analysis</h2>
+                        <div class="flex items-center space-x-3">
+                            <div>
+                                <label for="regulation-select" class="block text-sm font-medium text-gray-700 mb-1">Regulation</label>
+                                <select id="regulation-select" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                                    <option value="EU">European Union (REACH)</option>
+                                    <option value="US">United States (TSCA)</option>
+                                    <option value="CH">China (IECSC)</option>
+                                    <option value="JP">Japan (CSCL)</option>
+                                </select>
+                            </div>
+                            <button id="analyze-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md transition duration-200 mt-6 sm:mt-0">
+                                Analyze Compliance
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ingredient</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CAS Number</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Concentration</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ingredients-table-body" class="bg-white divide-y divide-gray-200">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="results-section" class="hidden fade-in">
+            <div class="bg-white rounded-xl shadow-md overflow-hidden mb-8">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-semibold text-gray-800">Compliance Results</h2>
+                        <div class="flex items-center space-x-2">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <i class="fas fa-check-circle mr-1"></i> Compliant
+                            </span>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                <i class="fas fa-times-circle mr-1"></i> Non-compliant
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ingredient</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CAS Number</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Concentration</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody id="results-table-body" class="bg-white divide-y divide-gray-200">
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div id="certificate-section" class="hidden mt-8">
+                        <div class="border-t border-gray-200 pt-6">
+                            <div class="flex justify-end">
+                                <button id="generate-certificate-btn" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-6 rounded-md transition duration-200 flex items-center">
+                                    <i class="fas fa-file-certificate mr-2"></i> Generate Compliance Certificate
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="certificate-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+            <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-2/3 shadow-lg rounded-md bg-white">
+                <div class="certificate border-2 border-gray-300 p-8 md:p-12 bg-white">
+                    <div class="text-center mb-8">
+                        <div class="flex justify-center mb-4">
+                            <div class="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-certificate text-blue-600 text-4xl"></i>
+                            </div>
+                        </div>
+                        <h1 class="text-3xl font-bold text-gray-800 mb-2">Compliance Declaration</h1>
+                        <p class="text-blue-600 font-medium">REGULATORY AFFAIRS DEPARTMENT</p>
+                    </div>
+                    
+                    <div class="mb-8">
+                        <p class="text-gray-700 mb-6">This document certifies that the following ingredients have been analyzed for compliance with the selected regulations and meet all required standards.</p>
+                        
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <p class="text-sm text-gray-500">Company</p>
+                                <p class="font-medium" id="cert-company">ACME Chemical Corp.</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Regulation</p>
+                                <p class="font-medium" id="cert-regulation">European Union (REACH)</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Date of Analysis</p>
+                                <p class="font-medium" id="cert-date">June 15, 2023</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Certificate ID</p>
+                                <p class="font-medium" id="cert-id">COMP-2023-06-15-001</p>
+                            </div>
+                        </div>
+                        
+                        <div class="border-t border-b border-gray-200 py-4 my-4">
+                            <h3 class="font-semibold text-gray-800 mb-2">Compliant Ingredients</h3>
+                            <ul id="cert-ingredients" class="list-disc list-inside text-gray-700">
+                            </ul>
+                        </div>
+                        
+                        <p class="text-gray-700 mb-6">The above ingredients have been verified to be in full compliance with all applicable requirements under the specified regulation.</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
+                        <div>
+                            <p class="text-sm text-gray-500 mb-1">Approved by</p>
+                            <div class="border-t-2 border-gray-300 pt-2 w-48">
+                                <p class="font-medium">Dr. Emily Johnson</p>
+                                <p class="text-sm text-gray-600">Head of Regulatory Affairs</p>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500 mb-1">Date issued</p>
+                            <div class="border-t-2 border-gray-300 pt-2 w-48">
+                                <p class="font-medium" id="cert-issue-date">June 15, 2023</p>
+                                <p class="text-sm text-gray-600">Valid for 12 months</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-6 flex justify-between">
+                    <button id="print-certificate-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md transition duration-200 flex items-center">
+                        <i class="fas fa-print mr-2"></i> Print Certificate
+                    </button>
+                    <button id="download-certificate-btn" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-6 rounded-md transition duration-200 flex items-center">
+                        <i class="fas fa-download mr-2"></i> Download PDF
+                    </button>
+                    <button id="close-certificate-btn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-6 rounded-md transition duration-200">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const pdfInput = document.getElementById('pdf-upload');
+            const uploadBox = pdfInput.closest('.border-2');
+            let simulationContainer = null;
+
+            function ensureSimulationContainer() {
+                if (!simulationContainer) {
+                    simulationContainer = document.createElement('div');
+                    simulationContainer.id = 'simulation-result';
+                    simulationContainer.style.marginTop = '2rem';
+                    uploadBox.parentNode.appendChild(simulationContainer);
+                }
+                simulationContainer.innerHTML = '';
+            }
+
+            pdfInput.addEventListener('change', function(e) {
+                const file = pdfInput.files && pdfInput.files[0];
+                if (file) {
+                    const uploadArea = uploadBox.querySelector('.file-upload');
+                    if (uploadArea) uploadArea.style.display = 'none';
+                    let thumb = uploadBox.querySelector('.pdf-thumb');
+                    if (!thumb) {
+                        thumb = document.createElement('div');
+                        thumb.className = 'pdf-thumb';
+                        uploadBox.appendChild(thumb);
+                    }
+                    thumb.innerHTML = `
+                        <div style="display:flex;align-items:center;gap:0.7rem;">
+                            <div style="background:var(--primary-light-color);border-radius:8px;padding:0.7rem 0.9rem;display:flex;align-items:center;justify-content:center;">
+                                <i class="fa fa-file-pdf-o" style="font-size:2.1rem;color:#e53935;"></i>
+                            </div>
+                            <div style="display:flex;flex-direction:column;gap:0.2rem;">
+                                <span style="font-family:var(--font-heading);font-size:1.08rem;color:var(--primary-dark-color);font-weight:600;">${file.name}</span>
+                                <span style="font-size:0.97rem;color:var(--secondary-color);font-family:var(--font-body);">${(file.size/1024).toFixed(2)} KB</span>
+                            </div>
+                            <button id="remove-pdf-btn" style="margin-left:1.2rem;background:transparent;border:none;color:var(--secondary-color);font-size:1.3rem;cursor:pointer;" title="Remove"><i class="fa fa-times"></i></button>
+                        </div>
+                    `;
+                    thumb.querySelector('#remove-pdf-btn').onclick = function() {
+                        pdfInput.value = '';
+                        thumb.remove();
+                        if (uploadArea) uploadArea.style.display = '';
+                        if (simulationContainer) simulationContainer.innerHTML = '';
+                    };
+                }
+                ensureSimulationContainer();
+                simulationContainer.innerHTML = '<div style="display:flex;align-items:center;gap:0.7rem;font-family:var(--font-body);font-size:1.1rem;color:var(--primary-dark-color);font-weight:600;"><span class="fa fa-spinner fa-spin"></span> Processing PDF...</div>';
+                setTimeout(showSimulatedTable, 1800);
+            });
+
+            function showSimulatedTable() {
+                const rows = [
+                  ["COMMISSION REGULATION (EU) No 231/2012 (Specifications for Food Additives)", "Not directly applicable. This product is a natural food ingredient (dehydrated strawberry), not a food additive (E-number).", "N/A (Regulation is for food additives)"],
+                  ["Regulations (EC) No 1829/2003 and (EC) No 1830/2003 (GMO)", "Applicable to food ingredients regarding GMO status.", "Complies (declared as non-GMO)"],
+                  ["Regulation (EU) No 1169/2011 (Allergens)", "Applicable to food ingredients regarding allergen declaration.", "Complies (declared as not containing allergens)"],
+                  ["Directives 1999/2/EC and 1999/3/EC (Ionising Radiation)", "Applicable to food ingredients regarding irradiation status.", "Complies (declared as not irradiated/treated with ionising radiation)"],
+                  ["Regulation (EU) 2023/915 (Maximum Levels for Certain Contaminants)", "Applicable to food ingredients regarding contaminant limits.", "Complies"],
+                  ["Regulation (EC) No 396/2005 (Maximum Residue Levels of Pesticides)", "Applicable to food ingredients regarding pesticide residue limits.", "Complies"],
+                  ["Regulation (EC) No 1935/2004 (Food Contact Materials - Packaging)", "Applicable to packaging materials in contact with food.", "Complies (packaging complies with provisions)"],
+                  ["Microbiological Specifications (General Food Safety)", "Essential for food safety of any food product.", "Targets provided (e.g., Total plate count < 1000 CFU/g, Salmonella Not detected /25g), with standard methods (e.g., NF EN ISO), consistent with EU food safety principles."]
+                ];
+                let tableHTML = `<div style="overflow-x:auto; margin-bottom:2rem;">
+<table style="width:100%; border-collapse:collapse; font-family:var(--font-body); background:var(--container-bg); box-shadow:0 2px 12px rgba(0,0,0,0.04); border-radius:10px; overflow:hidden;">
+  <thead>
+    <tr style="background:var(--primary-light-color); color:var(--primary-dark-color); border-bottom:2px solid var(--border-color);">
+      <th style='width:36px; border-right:1px solid var(--border-color); background:var(--primary-light-color);'></th>
+      <th style="padding:0.7rem 0.6rem; text-align:left; font-size:0.98rem; font-family:var(--font-heading); border-right:1px solid var(--border-color);">EU Regulation or Aspect</th>
+      <th style="padding:0.7rem 0.6rem; text-align:left; font-size:0.98rem; font-family:var(--font-heading); border-right:1px solid var(--border-color);">Relevance to Strawberry Powder</th>
+      <th style="padding:0.7rem 0.6rem; text-align:left; font-size:0.98rem; font-family:var(--font-heading);">Compliance Status from TDS</th>
+    </tr>
+  </thead>
+  <tbody>`;
+                rows.forEach((row, idx) => {
+                  tableHTML += `<tr style="border-bottom:1.5px solid var(--border-color);">
+                    <td style='text-align:center; border-right:1px solid var(--border-color); background:var(--primary-light-color);'><input type="checkbox" class="row-check" data-row="${idx}" style="width:1.1em;height:1.1em;" /></td>
+                    <td style="padding:0.6rem 0.5rem; border-right:1px solid var(--border-color);">${row[0]}</td>
+                    <td style="padding:0.6rem 0.5rem; border-right:1px solid var(--border-color);">${row[1]}</td>
+                    <td style="padding:0.6rem 0.5rem;">${row[2]}</td>
+                  </tr>`;
+                });
+                tableHTML += `</tbody></table></div>
+<div style="text-align:center;">
+  <button id="generate-doc-btn" class="btn-primary" style="font-size:1.08rem; padding:0.8rem 2.5rem; margin-top:0.5rem; cursor:pointer; opacity:0.6; pointer-events:none;" onclick="window.open('https://www.google.com','_blank')">Generate Declaration</button>
+</div>`;
+                simulationContainer.innerHTML = tableHTML;
+                const btn = document.getElementById('generate-doc-btn');
+                const checks = simulationContainer.querySelectorAll('.row-check');
+                function updateBtnState() {
+                  let anyChecked = false;
+                  checks.forEach(chk => { if (chk.checked) anyChecked = true; });
+                  if (anyChecked) {
+                    btn.style.opacity = '1';
+                    btn.style.pointerEvents = 'auto';
+                  } else {
+                    btn.style.opacity = '0.6';
+                    btn.style.pointerEvents = 'none';
+                  }
+                }
+                checks.forEach(chk => chk.addEventListener('change', updateBtnState));
+                updateBtnState();
+            }
+        });
+        document.addEventListener('DOMContentLoaded', function() {
+            const bannedSubstances = {
+                'EU': [
+                    { name: 'Lead acetate', cas: '301-04-2', maxConcentration: 0 },
+                    { name: 'Formaldehyde', cas: '50-00-0', maxConcentration: 0.1 },
+                    { name: 'Asbestos', cas: '1332-21-4', maxConcentration: 0 },
+                    { name: 'Cadmium', cas: '7440-43-9', maxConcentration: 0.01 }
+                ],
+                'US': [
+                    { name: 'Asbestos', cas: '1332-21-4', maxConcentration: 0 },
+                    { name: 'Methylmercury', cas: '22967-92-6', maxConcentration: 0 },
+                    { name: 'PCBs', cas: '1336-36-3', maxConcentration: 0.0005 }
+                ],
+                'CH': [
+                    { name: 'Melamine', cas: '108-78-1', maxConcentration: 1.0 },
+                    { name: 'Bisphenol A', cas: '80-05-7', maxConcentration: 0.6 }
+                ],
+                'JP': [
+                    { name: 'Hexavalent chromium', cas: '18540-29-9', maxConcentration: 0.1 },
+                    { name: 'Toluene', cas: '108-88-3', maxConcentration: 0.5 }
+                ]
+            };
+            const restrictedSubstances = {
+                'EU': [
+                    { name: 'Nickel', cas: '7440-02-0', maxConcentration: 0.5 },
+                    { name: 'Phthalates', cas: '117-81-7', maxConcentration: 0.1 }
+                ],
+                'US': [
+                    { name: 'Lead', cas: '7439-92-1', maxConcentration: 0.03 },
+                    { name: 'Mercury', cas: '7439-97-6', maxConcentration: 0.01 }
+                ],
+                'CH': [
+                    { name: 'Formaldehyde', cas: '50-00-0', maxConcentration: 0.2 },
+                    { name: 'Azo dyes', cas: null, maxConcentration: 0 }
+                ],
+                'JP': [
+                    { name: 'Formaldehyde', cas: '50-00-0', maxConcentration: 0.2 },
+                    { name: 'Arsenic', cas: '7440-38-2', maxConcentration: 0.1 }
+                ]
+            };
+            let ingredients = [];
+            let analysisResults = [];
+            let allCompliant = false;
+            const ingredientsSection = document.getElementById('ingredients-section');
+            const resultsSection = document.getElementById('results-section');
+            const certificateSection = document.getElementById('certificate-section');
+            const analyzeBtn = document.getElementById('analyze-btn');
+            const generateCertificateBtn = document.getElementById('generate-certificate-btn');
+            const certificateModal = document.getElementById('certificate-modal');
+            const closeCertificateBtn = document.getElementById('close-certificate-btn');
+            const printCertificateBtn = document.getElementById('print-certificate-btn');
+            const downloadCertificateBtn = document.getElementById('download-certificate-btn');
+            analyzeBtn.addEventListener('click', analyzeCompliance);
+            generateCertificateBtn.addEventListener('click', showCertificateModal);
+            closeCertificateBtn.addEventListener('click', () => certificateModal.classList.add('hidden'));
+            printCertificateBtn.addEventListener('click', printCertificate);
+            downloadCertificateBtn.addEventListener('click', downloadCertificate);
+            function updateIngredientsTable() {
+                const tbody = document.getElementById('ingredients-table-body');
+                tbody.innerHTML = '';
+                ingredients.forEach(ingredient => {
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-gray-50';
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">${ingredient.name}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-500">${ingredient.cas || 'N/A'}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-500">${ingredient.concentration}%</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <button onclick="deleteIngredient(${ingredient.id})" class="text-red-600 hover:text-red-900">Delete</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+            window.deleteIngredient = function(id) {
+                ingredients = ingredients.filter(ing => ing.id !== id);
+                updateIngredientsTable();
+            }
+            function analyzeCompliance() {
+                if (ingredients.length === 0) {
+                    alert('Please add at least one ingredient to analyze');
+                    return;
+                }
+                const regulation = document.getElementById('regulation-select').value;
+                analysisResults = [];
+                allCompliant = true;
+                ingredients.forEach(ingredient => {
+                    let compliant = true;
+                    let notes = 'Compliant with all requirements';
+                    const bannedMatch = bannedSubstances[regulation].find(sub => 
+                        sub.cas === ingredient.cas || 
+                        (sub.name.toLowerCase() === ingredient.name.toLowerCase() && sub.cas === null)
+                    );
+                    if (bannedMatch) {
+                        compliant = false;
+                        notes = `Banned substance under ${regulation} regulations`;
+                    } else {
+                        const restrictedMatch = restrictedSubstances[regulation].find(sub => 
+                            sub.cas === ingredient.cas || 
+                            (sub.name.toLowerCase() === ingredient.name.toLowerCase() && sub.cas === null)
+                        );
+                        if (restrictedMatch && ingredient.concentration > restrictedMatch.maxConcentration) {
+                            compliant = false;
+                            notes = `Exceeds maximum allowed concentration (${restrictedMatch.maxConcentration}%)`;
+                        }
+                    }
+                    if (!compliant) {
+                        allCompliant = false;
+                    }
+                    analysisResults.push({
+                        ...ingredient,
+                        compliant,
+                        notes
+                    });
+                });
+                updateResultsTable();
+                resultsSection.classList.remove('hidden');
+                resultsSection.classList.add('fade-in');
+                if (allCompliant) {
+                    certificateSection.classList.remove('hidden');
+                } else {
+                    certificateSection.classList.add('hidden');
+                }
+            }
+            function updateResultsTable() {
+                const tbody = document.getElementById('results-table-body');
+                tbody.innerHTML = '';
+                analysisResults.forEach(result => {
+                    const row = document.createElement('tr');
+                    row.className = result.compliant ? 'compliant' : 'non-compliant';
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">${result.name}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-500">${result.cas || 'N/A'}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-500">${result.concentration}%</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${result.compliant ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                                ${result.compliant ? 'Compliant' : 'Non-compliant'}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm text-gray-500">${result.notes}</div>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+            function showCertificateModal() {
+                const regulationSelect = document.getElementById('regulation-select');
+                const regulationText = regulationSelect.options[regulationSelect.selectedIndex].text;
+                const today = new Date();
+                const formattedDate = today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                document.getElementById('cert-regulation').textContent = regulationText;
+                document.getElementById('cert-date').textContent = formattedDate;
+                document.getElementById('cert-issue-date').textContent = formattedDate;
+                document.getElementById('cert-id').textContent = `COMP-${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}-${Math.floor(1000 + Math.random() * 9000)}`;
+                const ingredientsList = document.getElementById('cert-ingredients');
+                ingredientsList.innerHTML = '';
+                ingredients.forEach(ingredient => {
+                    const li = document.createElement('li');
+                    li.className = 'mb-1';
+                    li.textContent = `${ingredient.name} (${ingredient.concentration}%)`;
+                    ingredientsList.appendChild(li);
+                });
+                certificateModal.classList.remove('hidden');
+            }
+            function printCertificate() {
+                const printContent = document.querySelector('.certificate').outerHTML;
+                const originalContent = document.body.innerHTML;
+                document.body.innerHTML = printContent;
+                window.print();
+                document.body.innerHTML = originalContent;
+                closeCertificateBtn.addEventListener('click', () => certificateModal.classList.add('hidden'));
+                printCertificateBtn.addEventListener('click', printCertificate);
+                downloadCertificateBtn.addEventListener('click', downloadCertificate);
+            }
+            function downloadCertificate() {
+                alert('In a real implementation, this would generate and download a PDF certificate.\nFor this demo, you can print the certificate instead.');
+            }
+        });
+    </script>
+</body>
+</html>
